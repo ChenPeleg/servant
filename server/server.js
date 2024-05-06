@@ -4,15 +4,15 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 
 let server;
-let timeout;
+
 let lastFileChanged = '';
 
 function startServer() {
     const __dirname = dirname(fileURLToPath(import.meta.url));
     server = spawn('node', [resolve(__dirname, 'main.js')]);
-    server.stdout.on('data', (data) => console.log(`stdout: ${data}`));
-    server.stderr.on('data', (data) => console.error(`stderr: ${data}`));
-    server.on('close', (code) => console.log(`child process exited with code ${code}`));
+    // server.stdout.on('data', (data) => console.log(`stdout: ${data}`));
+    // server.stderr.on('data', (data) => console.error(`stderr: ${data}`));
+    // server.on('close', (code) => console.log(`child process exited with code ${code}`));
 }
 
 function restartServer() {
@@ -22,6 +22,7 @@ function restartServer() {
 }
 
 function debounce(func, wait) {
+    let timeout;
     return function executedFunction(...args) {
         if (timeout) clearTimeout(timeout);
         const later = () => {
