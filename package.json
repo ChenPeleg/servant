@@ -2,7 +2,7 @@
 
   "name": "servant",
   "version": "1.0.0",
-  "main": "server/server.js",
+  "main": "server/main.js",
   "type": "module",
   "scripts": {
     "test": "test"
