@@ -3,34 +3,86 @@ import { existsSync, readFileSync, watch } from 'node:fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { lstat } from 'fs/promises';
-
+import http from 'http';
 
 class HotReload {
     debouncedRestart = this.debounce(this.restartServer.bind(this), 2000);
+    clients = [];
 
-    constructor(serverFilePath = 'main.js') {
+    constructor({ serverFilePath, htmlReloadPort } = {}) {
+        this.htmlReloadPort = htmlReloadPort || null;
         this.rootPath = resolve(process.cwd());
         this.ignoredPatterns = this.getIgnoredPatterns(this.rootPath);
-        this.serverFilePath = serverFilePath;
+        this.serverFilePath = serverFilePath || 'main.js';
         this.server = null;
         this.lastFileChanged = '';
         this.timeout = null;
     }
 
     run() {
-        console.log(`\x1b[33m 🚀 Hot reload watching files in "${this.rootPath}" \x1b[0m`);
+        console.log(
+            `\x1b[33m 🚀 Hot reload watching files in "${this.rootPath}" \x1b[0m`
+        );
         this.startServer();
+        this.startHtmlReloadServer();
         this.watchFiles();
+    }
+
+    startHtmlReloadServer() {
+        if (!this.htmlReloadPort) return;
+        const htmlHotReloadNotifier = http.createServer((request, response) => {
+            const headers = {
+                'Content-Type': 'text/event-stream',
+                Connection: 'keep-alive',
+                'Cache-Control': 'no-cache',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+                'Access-Control-Max-Age': 2592000,
+            };
+            if (request.method === 'OPTIONS') {
+                request.writeHead(204, headers);
+                request.end();
+                return;
+            }
+            response.writeHead(200, headers);
+
+            const data = `Listening for HTML changes on port ${this.htmlReloadPort}...`;
+
+            response.write(data);
+
+            const clientId = Date.now();
+
+            const newClient = {
+                id: clientId,
+                response,
+            };
+            console.log(`${clientId} Connection opened`);
+
+            this.clients.push(newClient);
+
+            request.on('close', () => {
+                console.log(`${clientId} Connection closed`);
+                this.clients = this.clients.filter(
+                    (client) => client.id !== clientId
+                );
+            });
+        });
+        htmlHotReloadNotifier.listen(this.htmlReloadPort);
     }
 
     startServer() {
         const __dirname = dirname(fileURLToPath(import.meta.url));
         this.server = spawn('node', [resolve(__dirname, this.serverFilePath)]);
         this.server.stdout.on('data', (data) => console.log(data.toString()));
-        this.server.stderr.on('data', (data) => console.error(`stderr: ${data}`));
+        this.server.stderr.on('data', (data) =>
+            console.error(`stderr: ${data}`)
+        );
     }
+
     restartServer() {
-        console.log(`\x1b[33m 🔄 File ${this.lastFileChanged} was changed, restarting server... \x1b[0m`);
+        console.log(
+            `\x1b[33m 🔄 File ${this.lastFileChanged} was changed, restarting server... \x1b[0m`
+        );
         this.server.kill();
         this.startServer();
     }
@@ -48,16 +100,24 @@ class HotReload {
     }
 
     watchFiles() {
-        watch(this.rootPath, { recursive: true }, async (eventType, filename) => {
-            const path = resolve(this.rootPath, filename);
-            if (!existsSync(path) || filename.includes('~')) return;
-            const stats = await lstat(resolve(this.rootPath, filename));
-            if (!stats.isFile()) return;
-            if (this.ignoredPatterns.some((pattern) => pattern.test(filename))) return;
-            this.lastFileChanged = filename;
-            this.debouncedRestart();
-
-        });
+        watch(
+            this.rootPath,
+            { recursive: true },
+            async (eventType, filename) => {
+                const path = resolve(this.rootPath, filename);
+                if (!existsSync(path) || filename.includes('~')) return;
+                const stats = await lstat(resolve(this.rootPath, filename));
+                if (!stats.isFile()) return;
+                if (
+                    this.ignoredPatterns.some((pattern) =>
+                        pattern.test(filename)
+                    )
+                )
+                    return;
+                this.lastFileChanged = filename;
+                this.debouncedRestart();
+            }
+        );
     }
 
     getIgnoredPatterns(root) {
@@ -71,24 +131,39 @@ class HotReload {
 
             return new RegExp(regExp);
         };
-        const ignoredPatterns = [/node_modules/, /dist/, /build/, /coverage/, /test/,
-                                 /public/, /out/, /temp/, /.idea/, /.vscode/, /.git/,
-                                 /.github/, /.*\.log/];
+        const ignoredPatterns = [
+            /node_modules/,
+            /dist/,
+            /build/,
+            /coverage/,
+            /test/,
+            /public/,
+            /out/,
+            /temp/,
+            /.idea/,
+            /.vscode/,
+            /.git/,
+            /.github/,
+            /.*\.log/,
+        ];
 
         const gitignore = resolve(root, '.gitignore');
         if (existsSync(gitignore)) {
-
             const patterns = readFileSync(gitignore, 'utf8').split('\n');
             patterns.forEach((pattern) => {
                 if (pattern.trim() !== '') {
-                    ignoredPatterns.push(new RegExp(gitignoreToRegExp(pattern)));
+                    ignoredPatterns.push(
+                        new RegExp(gitignoreToRegExp(pattern))
+                    );
                 }
             });
         }
         return ignoredPatterns;
-
     }
 }
 
-const hotReload = new HotReload('main.js');
+const hotReload = new HotReload({
+    serverFilePath: 'main.js',
+    htmlReloadPort: 8000,
+});
 hotReload.run();

@@ -4,7 +4,6 @@ import http from 'http';
 import { extname, join as joinPath } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
 
-
 class MainServer {
     constructor({ root, port, staticFolder } = {}) {
         this.staticFolder = staticFolder || 'public';
@@ -15,8 +14,11 @@ class MainServer {
     start() {
         const server = http.createServer(this.serverMainHandler.bind(this));
         server.listen(parseInt(this.port, 10));
-        console.log('\x1b[36m Server running at http://localhost:' + this.port +
-            '\x1b[0m');
+        console.log(
+            '\x1b[36m Server running at http://localhost:' +
+                this.port +
+                '\x1b[0m'
+        );
     }
 
     staticFileServer(request, response) {
@@ -30,16 +32,16 @@ class MainServer {
             '.svg': 'image/svg+xml',
         };
         if (!existsSync(filename)) {
-            console.log('FAIL: ' + filename);
+            // console.log('FAIL: ' + filename);
             filename = joinPath(process.cwd(), '/404.html');
         } else if (statSync(filename).isDirectory()) {
-            console.log('FLDR: ' + filename);
+            // console.log('FLDR: ' + filename);
             filename += '/index.html';
         }
 
         try {
             const file = readFileSync(filename, 'binary');
-            console.log('FILE: ' + filename);
+            // console.log('FILE: ' + filename);
             const headers = {};
             const contentType = contentTypesByExtension[extname(filename)];
             if (contentType) {
@@ -56,15 +58,11 @@ class MainServer {
         }
     }
 
-    apiCallsServer(request, response) {
-    }
-
+    apiCallsServer(request, response) {}
 
     serverMainHandler(request, response) {
         this.staticFileServer(request, response);
     }
-
-
 }
 
 class ServerConfig {
@@ -76,4 +74,3 @@ class ServerConfig {
 
 const server = new MainServer({ port: 4200, staticFolder: 'public' });
 server.start();
-

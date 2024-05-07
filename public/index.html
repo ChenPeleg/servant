@@ -1,24 +1,28 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <link href="./favicon.svg" rel="icon" type="image/svg+xml" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <meta content="Server" name="description" />
+    <head>
+        <meta charset="UTF-8" />
+        <link href="./favicon.svg" rel="icon" type="image/svg+xml" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <meta content="Server" name="description" />
 
-    <title>Server</title>
-    <!--    <script crossorigin src="./assets/index-BHNut7JN.js" type="module"></script>-->
-    <link crossorigin href="assets/tailwind.css" rel="stylesheet">
-    <link crossorigin href="assets/style.css" rel="stylesheet">
-</head>
-<style>
+        <title>Server</title>
+        <!--    <script crossorigin src="./assets/index-BHNut7JN.js" type="module"></script>-->
+        <link crossorigin href="assets/tailwind.css" rel="stylesheet" />
+        <link crossorigin href="assets/style.css" rel="stylesheet" />
+        <script crossorigin src="assets/main.js" type="module"></script>
+    </head>
+    <script>
+        const myWorker = new SharedWorker('assets/shared-worker.js');
+        myWorker.port.start();
+        myWorker.port.onmessage = (e) => {
+            console.log('Message received from worker', e.data);
+        };
+        myWorker.port.postMessage('Hello from the main thread!');
+    </script>
 
-</style>
-<body class="a">
-
-<h1>
-    Server
-</h1>
-<div id="root"></div>
-</body>
+    <body class="p-10 flex flex-col">
+        <h1>Server</h1>
+        <div id="root"></div>
+    </body>
 </html>
