@@ -1,9 +1,13 @@
 //@ts-check
 
 import http from 'http';
+
+
 import {resolve} from "node:path";
 import { join as joinPath, extname } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
+
+
 
 const port = process.argv[2] || 4200;
 
@@ -14,9 +18,6 @@ const index = 'html/index.html';
 http.createServer(function (request, response) {
    // const uri = ( new URL(request.url)).pathname;
     const basePath = resolve(process.cwd(), "../html/index.html");
-
-    // fasdfasdfsadfasdf fsdf fdfsdfs fasdf
-
 
     let filename = joinPath(basePath, '');
     const contentTypesByExtension = {
@@ -53,5 +54,4 @@ http.createServer(function (request, response) {
     }
 
 }).listen(parseInt(port, 10));
-console.log( 'Static file server running at\n  => http://localhost:' + port + '/\nCTRL' +
-    ' + C to shutdown');
+console.log( '\x1b[36m Server running at\n  => http://localhost:' + port + '\x1b[0m');

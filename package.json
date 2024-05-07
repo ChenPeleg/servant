@@ -5,6 +5,7 @@
   "main": "server/main.js",
   "type": "module",
   "scripts": {
+    "start": "node server/hot-reload.js",
     "test": "test"
   },
   "author": "",
