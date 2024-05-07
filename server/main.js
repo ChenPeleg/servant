@@ -4,20 +4,19 @@ import http from 'http';
 import { extname, join as joinPath } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
 
-const port = process.argv[2] || 4200;
 
-const index = 'html/index.html';
 
 
 class MainServer {
     constructor({ root, port } = {}) {
         this.root = root || process.cwd();
-        this.port = port;
+        this.port = port || 4200;
     }
 
     start() {
         const server = http.createServer(this.serverMainHandler.bind(this));
-        server.listen(parseInt(port, 10));
+        server.listen(parseInt(this.port, 10));
+        console.log('\x1b[36m Server running at http://localhost:' + this.port + '\x1b[0m');
     }
 
     staticFileServer(request, response ) {
@@ -56,11 +55,12 @@ class MainServer {
             response.end();
         }
     }
+    apiCallsServer(request, response) {
+    }
+
 
     serverMainHandler(request, response) {
         this.staticFileServer(request, response);
-
-
     }
 
 
@@ -75,4 +75,4 @@ class ServerConfig {
 
 const server = new MainServer();
 server.start();
-console.log('\x1b[36m Server running at http://localhost:' + port + '\x1b[0m');
+
