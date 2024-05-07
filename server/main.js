@@ -2,12 +2,9 @@
 
 import http from 'http';
 
-
 import {resolve} from "node:path";
 import { join as joinPath, extname } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
-
-
 
 const port = process.argv[2] || 4200;
 
@@ -54,4 +51,4 @@ http.createServer(function (request, response) {
     }
 
 }).listen(parseInt(port, 10));
-console.log( '\x1b[36m Server running at\n  => http://localhost:' + port + '\x1b[0m');
+console.log( '\x1b[36m Server running at http://localhost:' + port + '\x1b[0m');
