@@ -5,10 +5,9 @@ import { extname, join as joinPath } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
 
 
-
-
 class MainServer {
-    constructor({ root, port } = {}) {
+    constructor({ root, port, staticFolder } = {}) {
+        this.staticFolder = staticFolder || 'public';
         this.root = root || process.cwd();
         this.port = port || 4200;
     }
@@ -16,11 +15,12 @@ class MainServer {
     start() {
         const server = http.createServer(this.serverMainHandler.bind(this));
         server.listen(parseInt(this.port, 10));
-        console.log('\x1b[36m Server running at http://localhost:' + this.port + '\x1b[0m');
+        console.log('\x1b[36m Server running at http://localhost:' + this.port +
+            '\x1b[0m');
     }
 
-    staticFileServer(request, response ) {
-        const basePath = this.root;
+    staticFileServer(request, response) {
+        const basePath = joinPath(this.root, this.staticFolder);
         let filename = joinPath(basePath, request.url);
         const contentTypesByExtension = {
             '.html': 'text/html',
@@ -55,6 +55,7 @@ class MainServer {
             response.end();
         }
     }
+
     apiCallsServer(request, response) {
     }
 
@@ -73,6 +74,6 @@ class ServerConfig {
     }
 }
 
-const server = new MainServer();
+const server = new MainServer({ port: 4200, staticFolder: 'public' });
 server.start();
 
