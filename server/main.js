@@ -1,8 +1,6 @@
 //@ts-check
 
 import http from 'http';
-
-import { resolve } from 'node:path';
 import { extname, join as joinPath } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
 
@@ -12,18 +10,19 @@ const index = 'html/index.html';
 
 
 class MainServer {
+    constructor({ root, port } = {}) {
+        this.root = root || process.cwd();
+        this.port = port;
+    }
+
     start() {
-        const server =
-            http.createServer(this.serverMainHandler.bind(this) );
+        const server = http.createServer(this.serverMainHandler.bind(this));
         server.listen(parseInt(port, 10));
     }
 
-    serverMainHandler(request, response) {
-
-        // const uri = ( new URL(request.url)).pathname;
-        const basePath = resolve(process.cwd(), '../html/index.html');
-
-        let filename = joinPath(basePath, '');
+    staticFileServer(request, response ) {
+        const basePath = this.root;
+        let filename = joinPath(basePath, request.url);
         const contentTypesByExtension = {
             '.html': 'text/html',
             '.css': 'text/css',
@@ -56,10 +55,22 @@ class MainServer {
             response.write(err + '\n');
             response.end();
         }
+    }
+
+    serverMainHandler(request, response) {
+        this.staticFileServer(request, response);
+
 
     }
 
 
+}
+
+class ServerConfig {
+    constructor() {
+        this.port = 4200;
+        this.root = process.cwd();
+    }
 }
 
 const server = new MainServer();
