@@ -45,13 +45,9 @@ class HotReload {
                 return;
             }
             response.writeHead(200, headers);
-
             const data = `Listening for HTML changes on port ${this.htmlReloadPort}...`;
-
             response.write(data);
-
             const clientId = Date.now();
-
             const newClient = {
                 id: clientId,
                 response,
@@ -64,17 +60,6 @@ class HotReload {
             });
         });
         htmlHotReloadServer.listen(this.htmlReloadPort);
-        // setInterval(() => {
-        //     this.clients.forEach((client) => {
-        //         client.response.write(
-        //             [
-        //                 `event: message`,
-        //                 `id: ${client.id}`,
-        //                 `data: reload\n\n`,
-        //             ].join('\n')
-        //         );
-        //     });
-        // }, 3000);
     }
 
     startServer() {
