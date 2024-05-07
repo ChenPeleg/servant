@@ -16,13 +16,14 @@
         const myWorker = new SharedWorker('assets/shared-worker.js');
         myWorker.port.start();
         myWorker.port.onmessage = (e) => {
-            console.log('Message received from worker', e.data);
+            if (e.data === 'reload') {
+                window.location.reload();
+            }
         };
-        myWorker.port.postMessage('Hello from the main thread!');
     </script>
 
     <body class="p-10 flex flex-col">
-        <h1>Server</h1>
+        <h1>Server 2</h1>
         <div id="root"></div>
     </body>
 </html>

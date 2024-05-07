@@ -6,7 +6,7 @@ import { lstat } from 'fs/promises';
 import http from 'http';
 
 class HotReload {
-    debouncedRestart = this.debounce(this.restartServer.bind(this), 2000);
+    debouncedRestart = this.debounce(this.restartServer.bind(this), 1000);
     clients = [];
 
     constructor({ serverFilePath, htmlReloadPort } = {}) {
@@ -30,7 +30,7 @@ class HotReload {
 
     startHtmlReloadServer() {
         if (!this.htmlReloadPort) return;
-        const htmlHotReloadNotifier = http.createServer((request, response) => {
+        const htmlHotReloadServer = http.createServer((request, response) => {
             const headers = {
                 'Content-Type': 'text/event-stream',
                 Connection: 'keep-alive',
@@ -56,18 +56,25 @@ class HotReload {
                 id: clientId,
                 response,
             };
-            console.log(`${clientId} Connection opened`);
-
             this.clients.push(newClient);
-
             request.on('close', () => {
-                console.log(`${clientId} Connection closed`);
                 this.clients = this.clients.filter(
                     (client) => client.id !== clientId
                 );
             });
         });
-        htmlHotReloadNotifier.listen(this.htmlReloadPort);
+        htmlHotReloadServer.listen(this.htmlReloadPort);
+        // setInterval(() => {
+        //     this.clients.forEach((client) => {
+        //         client.response.write(
+        //             [
+        //                 `event: message`,
+        //                 `id: ${client.id}`,
+        //                 `data: reload\n\n`,
+        //             ].join('\n')
+        //         );
+        //     });
+        // }, 3000);
     }
 
     startServer() {
@@ -83,8 +90,16 @@ class HotReload {
         console.log(
             `\x1b[33m 🔄 File ${this.lastFileChanged} was changed, restarting server... \x1b[0m`
         );
+
         this.server.kill();
         this.startServer();
+        this.clients.forEach((client) => {
+            client.response.write(
+                [`event: message`, `id: ${client.id}`, `data: reload\n\n`].join(
+                    '\n'
+                )
+            );
+        });
     }
 
     debounce(func, wait) {
@@ -137,7 +152,6 @@ class HotReload {
             /build/,
             /coverage/,
             /test/,
-            /public/,
             /out/,
             /temp/,
             /.idea/,
