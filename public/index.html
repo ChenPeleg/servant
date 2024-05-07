@@ -13,7 +13,9 @@
         <script crossorigin src="assets/main.js" type="module"></script>
     </head>
     <script>
-        const myWorker = new SharedWorker('assets/shared-worker.js');
+        const myWorker = new SharedWorker('assets/shared-worker.js', {
+            name: 'reload-worker',
+        });
         myWorker.port.start();
         myWorker.port.onmessage = (e) => {
             if (e.data === 'reload') {
