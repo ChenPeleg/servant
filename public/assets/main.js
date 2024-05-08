@@ -14,14 +14,16 @@ class ApiCall {
 class Main {
     init() {
         const button = document.querySelector('#callButton');
-        console.log('init', button);
+
         this.select = document.querySelector('#callSelect');
-        this.calls().forEach((call) => {
+        this.calls = this.buildCalls();
+        this.calls.forEach((call) => {
             const option = document.createElement('option');
             option.text = call.name;
             option.value = call.id;
             this.select.add(option);
         });
+        this.selectedCallInfo = document.querySelector('#selectedCallInfo');
 
         this.select.addEventListener('change', (ev) => {
             this.selectionChanged(ev);
@@ -30,14 +32,20 @@ class Main {
     }
 
     selectionChanged(ev) {
-        console.log('selectionChanged', this.select.value);
+        const call = this.calls.find((c) => +c.id === +ev.target.value);
+
+        if (!call) return;
+        this.selectedCallInfo.innerHTML = `${call.name} ${call.path} ${call.method}`;
     }
 
     callApi(ev) {
-        console.log('callApi', this.select.value);
+        const call = this.calls.find((c) => +c.id === +this.select.value);
+
+        if (!call) return;
+        console.log('callApi', call);
     }
 
-    calls() {
+    buildCalls() {
         return [
             new ApiCall({
                 path: '/api/first',
