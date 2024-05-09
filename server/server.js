@@ -11,6 +11,33 @@ class MainServer {
         this.root = root || process.cwd();
         this.port = port || 4200;
         this.apiConteoller = apiController;
+        this.hotRelaodfile = `hot-reload-${Math.random().toString(36).substring(6)}.js`;
+    }
+
+    get htmlHotReloadWorker() {
+        return `onconnect = (e) => {
+    const port = e.ports[0];
+    const evtSource = new EventSource('http://localhost:8000');
+    evtSource.addEventListener('message', (e) => {
+        port.postMessage(e.data);
+    });
+    port.start();
+};
+`;
+    }
+
+    get htmlHotReloadScript() {
+        return `<script>
+        const myWorker = new SharedWorker("${this.hotRelaodfile}", {
+            name: 'reload-worker',
+        });
+        myWorker.port.start();
+        myWorker.port.onmessage = (e) => {
+            if (e.data === 'reload') {
+                window.location.reload();
+            }
+        };
+    </script>`;
     }
 
     start() {
@@ -26,6 +53,13 @@ class MainServer {
     staticFileServer(request, response) {
         const basePath = joinPath(this.root, this.staticFolder);
         let filename = joinPath(basePath, request.url);
+        console.log(request.url);
+        if (request.url.replace('/', '') === this.hotRelaodfile) {
+            response.writeHead(200, { 'Content-Type': 'text/javascript' });
+            response.write(this.htmlHotReloadWorker, 'binary');
+            response.end();
+            return;
+        }
         const contentTypesByExtension = {
             '.html': 'text/html',
             '.css': 'text/css',
@@ -46,7 +80,13 @@ class MainServer {
         }
 
         try {
-            const file = readFileSync(filename, 'binary');
+            let file = readFileSync(filename, 'binary');
+            if (filename.endsWith('.html')) {
+                file = file.replace(
+                    '</head>',
+                    `${this.htmlHotReloadScript}</head>`
+                );
+            }
 
             const headers = {};
             const contentType = contentTypesByExtension[extname(filename)];
