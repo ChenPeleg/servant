@@ -84,7 +84,11 @@ class Main {
     }
 
     displayData(data) {
-        console.log(JSON.stringify(data));
+        document.querySelector('#responseCallInfo').innerHTML = JSON.stringify(
+            data,
+            null,
+            2
+        );
     }
 }
 
