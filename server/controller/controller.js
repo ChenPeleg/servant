@@ -3,8 +3,22 @@
  */
 
 export class ApiController {
-    constructor() {
+    constructor({ initialState, persistState }) {
+        this.persistState = persistState || false;
         this.routes = [];
+        this.state = initialState || {};
+    }
+
+    static getVariablesFromPath(path, request) {
+        const pathParts = path.split('/');
+        const requestParts = request.url.split('/');
+        const variables = {};
+        pathParts.forEach((part, i) => {
+            if (part.startsWith(':')) {
+                variables[part.substring(1)] = requestParts[i];
+            }
+        });
+        return variables;
     }
 
     use(request, response) {
