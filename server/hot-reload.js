@@ -132,6 +132,7 @@ class HotReload {
             return new RegExp(regExp);
         };
         const ignoredPatterns = [
+            /\.git*/g,
             /node_modules/,
             /dist/,
             /build/,
