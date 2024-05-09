@@ -30,8 +30,9 @@ export class ApiController {
     }
 
     static getVariablesFromPath(path, request) {
+        const requestWithoutQuery = request.url.split('?')[0];
         const pathParts = path.split('/');
-        const requestParts = request.url.split('/');
+        const requestParts = requestWithoutQuery.split('/');
         const variables = {};
         pathParts.forEach((part, i) => {
             if (part.startsWith(':')) {
@@ -67,9 +68,7 @@ export class ApiController {
                 ApiController.stateSaveFileName,
                 JSON.stringify(this.state, null, 2),
                 'utf8'
-            ).then(() => {
-                console.log('state saved');
-            });
+            ).then();
         }
         return { handled: true };
     }
