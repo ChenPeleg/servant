@@ -34,10 +34,14 @@ class MainServer {
             '.svg': 'image/svg+xml',
         };
         if (!existsSync(filename)) {
-            // console.log('FAIL: ' + filename);
+            if (filename.includes('api')) {
+                response.writeHead(400, { 'Content-Type': 'text/plain' });
+                response.write('API call not found');
+                response.end();
+                return;
+            }
             filename = joinPath(process.cwd(), '/404.html');
         } else if (statSync(filename).isDirectory()) {
-            // console.log('FLDR: ' + filename);
             filename += '/index.html';
         }
 
@@ -53,6 +57,7 @@ class MainServer {
             response.write(file, 'binary');
             response.end();
         } catch (err) {
+            console.error(err);
             response.writeHead(500, { 'Content-Type': 'text/plain' });
             response.write(err + '\n');
             response.end();
@@ -80,10 +85,14 @@ controller.addRoute({
     route: '/api/first',
     routeAction: (req, res) => {
         res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.write('First API call');
+        res.write(`route was called: ${req.url}`);
         res.end();
     },
 });
 
-const server = new MainServer({ port: 4200, staticFolder: 'public' });
+const server = new MainServer({
+    port: 4200,
+    staticFolder: 'public',
+    apiController: controller,
+});
 server.start();

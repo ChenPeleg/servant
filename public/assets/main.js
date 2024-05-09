@@ -38,11 +38,29 @@ class Main {
         this.selectedCallInfo.innerHTML = `${call.name} ${call.path} ${call.method}`;
     }
 
-    callApi(ev) {
+    async callApi(ev) {
         const call = this.calls.find((c) => +c.id === +this.select.value);
 
         if (!call) return;
-        console.log('callApi', call);
+        const req = {
+            method: call.method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+        if (call.method.toUpperCase() !== 'GET') {
+            req.body = JSON.stringify(call.body);
+        }
+        const result = await fetch(call.path, req);
+
+        // if (result.headers.get('Content-Type') === 'application/json') {
+        //     const data = await result.json();
+        // }
+        const data =
+            result.headers.get('Content-Type') === 'application/json'
+                ? await result.json()
+                : await result.text();
+        this.displayData(data);
     }
 
     buildCalls() {
@@ -64,7 +82,10 @@ class Main {
             }),
         ];
     }
+
+    displayData(data) {
+        console.log(JSON.stringify(data));
+    }
 }
 
-console.log(3);
 new Main().init();
