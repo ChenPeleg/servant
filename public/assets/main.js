@@ -71,7 +71,7 @@ class Main {
                 name: 'First',
             }),
             new ApiCall({
-                path: '/api/second',
+                path: '/api/second/123123?var1=2&var2=gotohell',
                 method: 'GET',
                 name: 'Second',
             }),
