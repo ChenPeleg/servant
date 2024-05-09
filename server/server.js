@@ -3,7 +3,7 @@
 import http from 'http';
 import { extname, join as joinPath } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
-import { ApiController } from './controller/controller.js';
+import { writeFile, readFile } from 'node:fs/promises';
 
 class MainServer {
     constructor({ root, port, staticFolder, apiController } = {}) {
@@ -80,10 +80,87 @@ class MainServer {
     }
 }
 
+export class ApiController {
+    static stateSaveFileName = './server.state.temp';
+
+    constructor({ initialState, persistState } = {}) {
+        this.persistState = persistState || false;
+        this.routes = [];
+        this.state = initialState || {};
+        if (this.persistState) {
+            this.tryToLoadState().then();
+        }
+    }
+
+    static isRouteMatch(path, request) {
+        const pathParts = path.split('/');
+        const requestParts = request.url.split('/');
+        if (pathParts.length !== requestParts.length) {
+            return false;
+        }
+        return pathParts.every((part, i) => {
+            if (part.startsWith(':')) {
+                return true;
+            }
+            return part === requestParts[i];
+        });
+    }
+
+    static getVariablesFromPath(path, request) {
+        const requestWithoutQuery = request.url.split('?')[0];
+        const pathParts = path.split('/');
+        const requestParts = requestWithoutQuery.split('/');
+        const variables = {};
+        pathParts.forEach((part, i) => {
+            if (part.startsWith(':')) {
+                variables[part.substring(1)] = requestParts[i];
+            }
+        });
+        return variables;
+    }
+
+    async tryToLoadState() {
+        try {
+            const state = await readFile(
+                ApiController.stateSaveFileName,
+                'utf8'
+            );
+            this.state = JSON.parse(state);
+        } catch (err) {
+            console.log('state not loaded', err);
+        }
+    }
+
+    use(request, response) {
+        const route = this.routes.find((r) =>
+            ApiController.isRouteMatch(r.route, request)
+        );
+        if (!route) {
+            return { handled: false };
+        }
+
+        route.routeAction(request, response);
+        if (this.persistState) {
+            writeFile(
+                ApiController.stateSaveFileName,
+                JSON.stringify(this.state, null, 2),
+                'utf8'
+            ).then();
+        }
+        return { handled: true };
+    }
+
+    addRoute({ route, routeAction }) {
+        this.routes.push({ route, routeAction });
+        return this;
+    }
+}
+
 const controller = new ApiController({
     initialState: { count: 0 },
     persistState: true,
 });
+
 controller
     .addRoute({
         route: '/api/first',
