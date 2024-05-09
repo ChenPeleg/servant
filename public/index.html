@@ -13,17 +13,18 @@
         <link crossorigin href="assets/style.css" rel="stylesheet" />
         <script crossorigin src="assets/main.js" type="module"></script>
     </head>
-    <script>
-        const myWorker = new SharedWorker('assets/reload-worker.js', {
-            name: 'reload-worker',
-        });
-        myWorker.port.start();
-        myWorker.port.onmessage = (e) => {
-            if (e.data === 'reload') {
-                window.location.reload();
-            }
-        };
-    </script>
+    fsdf
+    <!--    <script>-->
+    <!--        const myWorker = new SharedWorker('assets/reload-worker.js', {-->
+    <!--            name: 'reload-worker',-->
+    <!--        });-->
+    <!--        myWorker.port.start();-->
+    <!--        myWorker.port.onmessage = (e) => {-->
+    <!--            if (e.data === 'reload') {-->
+    <!--                window.location.reload();-->
+    <!--            }-->
+    <!--        };-->
+    <!--    </script>-->
 
     <body class="p-10 flex flex-col text-2xl">
         <h1>Server</h1>
