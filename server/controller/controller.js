@@ -1,12 +1,18 @@
 /**
  * controller for one route
  */
+import { writeFile, readFile } from 'node:fs/promises';
 
 export class ApiController {
+    static stateSaveFileName = './server.state.temp';
+
     constructor({ initialState, persistState } = {}) {
         this.persistState = persistState || false;
         this.routes = [];
         this.state = initialState || {};
+        if (this.persistState) {
+            this.tryToLoadState().then();
+        }
     }
 
     static isRouteMatch(path, request) {
@@ -35,6 +41,18 @@ export class ApiController {
         return variables;
     }
 
+    async tryToLoadState() {
+        try {
+            const state = await readFile(
+                ApiController.stateSaveFileName,
+                'utf8'
+            );
+            this.state = JSON.parse(state);
+        } catch (err) {
+            console.log('state not loaded', err);
+        }
+    }
+
     use(request, response) {
         const route = this.routes.find((r) =>
             ApiController.isRouteMatch(r.route, request)
@@ -42,7 +60,17 @@ export class ApiController {
         if (!route) {
             return { handled: false };
         }
+
         route.routeAction(request, response);
+        if (this.persistState) {
+            writeFile(
+                ApiController.stateSaveFileName,
+                JSON.stringify(this.state, null, 2),
+                'utf8'
+            ).then(() => {
+                console.log('state saved');
+            });
+        }
         return { handled: true };
     }
 

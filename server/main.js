@@ -80,7 +80,10 @@ class MainServer {
     }
 }
 
-const controller = new ApiController({ initialState: { count: 0 } });
+const controller = new ApiController({
+    initialState: { count: 0 },
+    persistState: true,
+});
 controller.addRoute({
     route: '/api/first',
     routeAction: (req, res) => {
