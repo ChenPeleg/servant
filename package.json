@@ -1,8 +1,7 @@
 {
-
   "name": "servant",
   "version": "1.0.0",
-  "main": "server/main.js",
+  "main": "server/server.js",
   "type": "module",
   "scripts": {
     "start": "node server/hot-reload.js",
