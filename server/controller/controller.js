@@ -9,6 +9,20 @@ export class ApiController {
         this.state = initialState || {};
     }
 
+    static isRouteMatch(path, request) {
+        const pathParts = path.split('/');
+        const requestParts = request.url.split('/');
+        if (pathParts.length !== requestParts.length) {
+            return false;
+        }
+        return pathParts.every((part, i) => {
+            if (part.startsWith(':')) {
+                return true;
+            }
+            return part === requestParts[i];
+        });
+    }
+
     static getVariablesFromPath(path, request) {
         const pathParts = path.split('/');
         const requestParts = request.url.split('/');
