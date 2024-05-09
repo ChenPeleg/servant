@@ -3,7 +3,7 @@
  */
 
 export class ApiController {
-    constructor({ initialState, persistState }) {
+    constructor({ initialState, persistState } = {}) {
         this.persistState = persistState || false;
         this.routes = [];
         this.state = initialState || {};
@@ -36,6 +36,8 @@ export class ApiController {
     }
 
     use(request, response) {
+        console.log(request.url);
+
         const route = this.routes.find((r) => r.route === request.url);
         if (!route) {
             return { handled: false };
@@ -44,5 +46,7 @@ export class ApiController {
         return { handled: true };
     }
 
-    addRoute({ route, routeAction }) {}
+    addRoute({ route, routeAction }) {
+        this.routes.push({ route, routeAction });
+    }
 }
