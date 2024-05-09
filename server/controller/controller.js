@@ -36,9 +36,9 @@ export class ApiController {
     }
 
     use(request, response) {
-        console.log(request.url);
-
-        const route = this.routes.find((r) => r.route === request.url);
+        const route = this.routes.find((r) =>
+            ApiController.isRouteMatch(r.route, request)
+        );
         if (!route) {
             return { handled: false };
         }
@@ -48,5 +48,6 @@ export class ApiController {
 
     addRoute({ route, routeAction }) {
         this.routes.push({ route, routeAction });
+        return this;
     }
 }
