@@ -4,6 +4,7 @@ import http from 'http';
 import { extname, join as joinPath } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
 import { writeFile, readFile } from 'node:fs/promises';
+import { controller } from './controller.js';
 
 class MainServer {
     constructor({ root, port, staticFolder, apiController } = {}) {
@@ -53,7 +54,6 @@ class MainServer {
     staticFileServer(request, response) {
         const basePath = joinPath(this.root, this.staticFolder);
         let filename = joinPath(basePath, request.url);
-        console.log(request.url);
         if (request.url.replace('/', '') === this.hotRelaodfile) {
             response.writeHead(200, { 'Content-Type': 'text/javascript' });
             response.write(this.htmlHotReloadWorker, 'binary');
@@ -195,39 +195,6 @@ export class ApiController {
         return this;
     }
 }
-
-const controller = new ApiController({
-    initialState: { count: 0 },
-    persistState: true,
-});
-
-controller
-    .addRoute({
-        route: '/api/first',
-        routeAction: (req, res) => {
-            controller.state.count = controller.state.count + 1;
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.write(
-                `route ${req.url}  was called ${controller.state.count} times`
-            );
-            res.end();
-        },
-    })
-    .addRoute({
-        route: '/api/second/:id',
-        routeAction: (req, res) => {
-            const { id } = ApiController.getVariablesFromPath(
-                '/api/second/:id',
-                req
-            );
-            const params = new URLSearchParams(req.url.split('?')[1]);
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.write(
-                `route ${req.url}  was called with id ${id} and params ${[...params.entries()]}`
-            );
-            res.end();
-        },
-    });
 
 const server = new MainServer({
     port: 4200,
