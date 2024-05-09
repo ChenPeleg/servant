@@ -4,7 +4,7 @@ import http from 'http';
 import { extname, join as joinPath } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
 import { writeFile, readFile } from 'node:fs/promises';
-import { controller } from './controller.js';
+import { buildController } from './controller.js';
 
 class MainServer {
     constructor({ root, port, staticFolder, apiController } = {}) {
@@ -199,6 +199,6 @@ export class ApiController {
 const server = new MainServer({
     port: 4200,
     staticFolder: 'public',
-    apiController: controller,
+    apiController: buildController(),
 });
 server.start();
