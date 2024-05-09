@@ -80,12 +80,15 @@ class MainServer {
     }
 }
 
-const controller = new ApiController();
+const controller = new ApiController({ initialState: { count: 0 } });
 controller.addRoute({
     route: '/api/first',
     routeAction: (req, res) => {
+        controller.state.count = controller.state.count + 1;
         res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.write(`route was called: ${req.url}`);
+        res.write(
+            `route ${req.url}  was called ${controller.state.count} times`
+        );
         res.end();
     },
 });
