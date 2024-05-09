@@ -3,12 +3,14 @@
 import http from 'http';
 import { extname, join as joinPath } from 'path';
 import { existsSync, readFileSync, statSync } from 'fs';
+import { ApiController } from './controller/controller.js';
 
 class MainServer {
-    constructor({ root, port, staticFolder } = {}) {
+    constructor({ root, port, staticFolder, apiController } = {}) {
         this.staticFolder = staticFolder || 'public';
         this.root = root || process.cwd();
         this.port = port || 4200;
+        this.apiConteoller = apiController;
     }
 
     start() {
@@ -41,13 +43,12 @@ class MainServer {
 
         try {
             const file = readFileSync(filename, 'binary');
-            // console.log('FILE: ' + filename);
+
             const headers = {};
             const contentType = contentTypesByExtension[extname(filename)];
             if (contentType) {
                 headers['Content-Type'] = contentType;
             }
-
             response.writeHead(200, headers);
             response.write(file, 'binary');
             response.end();
@@ -58,19 +59,31 @@ class MainServer {
         }
     }
 
-    apiCallsServer(request, response) {}
+    apiCallsServer(request, response) {
+        if (!this.apiConteoller) {
+            return;
+        }
+        return this.apiConteoller.use(request, response);
+    }
 
-    serverMainHandler(request, response) {
+    async serverMainHandler(request, response) {
+        const result = await this.apiCallsServer(request, response);
+        if (result && result.handled) {
+            return;
+        }
         this.staticFileServer(request, response);
     }
 }
 
-class ServerConfig {
-    constructor() {
-        this.port = 4200;
-        this.root = process.cwd();
-    }
-}
+const controller = new ApiController();
+controller.addRoute({
+    route: '/api/first',
+    routeAction: (req, res) => {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.write('First API call');
+        res.end();
+    },
+});
 
 const server = new MainServer({ port: 4200, staticFolder: 'public' });
 server.start();
