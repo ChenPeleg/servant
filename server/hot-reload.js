@@ -64,7 +64,11 @@ class HotReload {
 
     startServer() {
         const __dirname = dirname(fileURLToPath(import.meta.url));
-        this.server = spawn('node', [resolve(__dirname, this.serverFilePath)]);
+        const allArgs = process.argv.slice(2);
+        this.server = spawn('node', [
+            resolve(__dirname, this.serverFilePath),
+            ...allArgs,
+        ]);
         this.server.stdout.on('data', (data) => console.log(data.toString()));
         this.server.stderr.on('data', (data) =>
             console.error(`stderr: ${data}`)
