@@ -108,18 +108,22 @@ class HotReload {
             this.rootPath,
             { recursive: true },
             async (eventType, filename) => {
-                const path = resolve(this.rootPath, filename);
-                if (!existsSync(path) || filename.includes('~')) return;
-                const stats = await lstat(resolve(this.rootPath, filename));
-                if (!stats.isFile()) return;
-                if (
-                    this.ignoredPatterns.some((pattern) =>
-                        pattern.test(filename)
+                try {
+                    const path = resolve(this.rootPath, filename);
+                    if (!existsSync(path) || filename.includes('~')) return;
+                    const stats = await lstat(resolve(this.rootPath, filename));
+                    if (!stats.isFile()) return;
+                    if (
+                        this.ignoredPatterns.some((pattern) =>
+                            pattern.test(filename)
+                        )
                     )
-                )
-                    return;
-                this.lastFileChanged = filename;
-                this.debouncedRestart();
+                        return;
+                    this.lastFileChanged = filename;
+                    this.debouncedRestart();
+                } catch (error) {
+                    console.error(error);
+                }
             }
         );
     }
